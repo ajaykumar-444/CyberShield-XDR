@@ -14,16 +14,52 @@ CORS(app)
 if not os.path.exists("uploads"):
     os.makedirs("uploads")
 
-# MYSQL CONNECTION WITH CLOUD ERROR HANDLING
+# MYSQL CONNECTION WITH LIVE CLOUD CONFIGURATION AND AUTO-TABLE CREATION
 try:
     db = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        password="AJAY KUMAR@2006",
-        database="cybershield"
+        host="bbp4bttcg8fgr6eiskeh-mysql.services.clever-cloud.com",
+        user="uvfi6na2ida0ssjy",
+        password="ylEWTT3MmhcZkDh8clcm",
+        database="bbp4bttcg8fgr6eiskeh",
+        port=3306
     )
     cursor = db.cursor()
-    print("Database connection established successfully!")
+    print("Database connection established successfully with Clever Cloud!")
+    
+    # 1. AUTO-CREATE SCANNED URLS TABLE
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS scanned_urls (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        url TEXT NOT NULL,
+        score INT NOT NULL,
+        classification VARCHAR(50) NOT NULL,
+        scan_time DATETIME NOT NULL
+    )
+    """)
+    
+    # 2. AUTO-CREATE QR SCANS TABLE
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS qr_scans (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        qr_data TEXT NOT NULL,
+        result VARCHAR(50) NOT NULL,
+        scan_time DATETIME NOT NULL
+    )
+    """)
+    
+    # 3. AUTO-CREATE SPAM MESSAGES TABLE
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS spam_messages (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        message TEXT NOT NULL,
+        result VARCHAR(50) NOT NULL,
+        scan_time DATETIME NOT NULL
+    )
+    """)
+    
+    db.commit()
+    print("All security log tables verified and created successfully on the cloud!")
+
 except mysql.connector.Error as err:
     print(f"Database connection failed: {err}")
     print("Running application without database services for cloud hosting.")
@@ -34,7 +70,7 @@ except mysql.connector.Error as err:
 @app.route('/')
 def home():
     return jsonify({
-        "message": "CyberShield XDR Running"
+        "message": "CyberShield XDR Running Successfully"
     })
 
 # URL SCAN ROUTE
@@ -49,14 +85,14 @@ def scan():
     if db and cursor:
         try:
             query = """
-            INSERT INTO scanned_urls
-            (url, score, classification, scan_time)
+            INSERT INTO scanned_urls 
+            (url, score, classification, scan_time) 
             VALUES (%s, %s, %s, %s)
             """
             values = (
-                url,
-                result['score'],
-                result['classification'],
+                url, 
+                result['score'], 
+                result['classification'], 
                 datetime.now()
             )
             cursor.execute(query, values)
@@ -97,7 +133,7 @@ def scan_qr():
     file = request.files['file']
 
     path = os.path.join(
-        'uploads',
+        'uploads', 
         file.filename
     )
     file.save(path)
@@ -108,13 +144,13 @@ def scan_qr():
     if db and cursor:
         try:
             query = """
-            INSERT INTO qr_scans
-            (qr_data, result, scan_time)
+            INSERT INTO qr_scans 
+            (qr_data, result, scan_time) 
             VALUES (%s, %s, %s)
             """
             values = (
-                result.get('qr_data'),
-                result.get('classification'),
+                result.get('qr_data'), 
+                result.get('classification'), 
                 datetime.now()
             )
             cursor.execute(query, values)
@@ -136,13 +172,13 @@ def scan_message():
     if db and cursor:
         try:
             query = """
-            INSERT INTO spam_messages
-            (message, result, scan_time)
+            INSERT INTO spam_messages 
+            (message, result, scan_time) 
             VALUES (%s, %s, %s)
             """
             values = (
-                message,
-                result['classification'],
+                message, 
+                result['classification'], 
                 datetime.now()
             )
             cursor.execute(query, values)
