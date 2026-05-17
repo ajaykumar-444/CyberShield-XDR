@@ -142,5 +142,9 @@ def scan_message():
     return jsonify(result)
 
 # RUN SERVER
+import os
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    # Render assigns a port dynamically via environment variables
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
